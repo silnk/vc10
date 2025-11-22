@@ -1,0 +1,121 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+  <title>10-Up Credit Card / ID-1 PDF Generator (No Trim)</title>
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/html2canvas/1.4.1/html2canvas.min.js"></script>
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
+  <style>
+    body { font-family: Arial, sans-serif; text-align: center; padding: 20px; background: #f4f4f4; }
+    #preview { margin: 20px auto; border: 1px solid #ccc; background: white; }
+    .card { width: 85.6mm; height: 54mm; background: white; box-shadow: 0 0 5px rgba(0,0,0,0.2); overflow: hidden; }
+    .card img { width: 100%; height: 100%; object-fit: cover; }
+    button { padding: 12px 30px; font-size: 18px; margin: 10px; cursor: pointer; }
+  </style>
+</head>
+<body>
+
+  <h1>10-Up ID-1 / CR80 Card PDF Generator<br><small>(No trimming needed after cutting)</small></h1>
+  
+  <input type="file" id="photo" accept="image/*" /><br><br>
+  
+  <div id="preview" style="width:210mm; height:297mm; margin:auto; display:none; position:relative; background:white; page-break-after: always;">
+    <!-- 10 cards will be injected here (2 rows × 5 columns) -->
+  </div>
+  
+  <br>
+  <button onclick="generatePDF()" id="downloadBtn" disabled>Download A4 PDF (10 cards)</button>
+
+  <script>
+    const { jsPDF } = window.jspdf;
+    let uploadedImg = null;
+
+    document.getElementById("photo").addEventListener("change", function(e){
+      const file = e.target.files[0];
+      if (!file) return;
+
+      const reader = new FileReader();
+      reader.onload = function(ev){
+        uploadedImg = new Image();
+        uploadedImg.onload = buildPreview;
+        uploadedImg.src = ev.target.result;
+      }
+      reader.readAsDataURL(file);
+    });
+
+    function buildPreview(){
+      const preview = document.getElementById("preview");
+      preview.style.display = "block";
+      preview.innerHTML = "";
+
+      // Exact layout: 2 rows × 5 columns, 3 mm gaps, centered
+      const positions = [
+        // Row 1
+        {top: "9.45mm",  left: "10.2mm"},
+        {top: "9.45mm",  left: "98.8mm"},
+        {top: "9.45mm",  left: "187.4mm"},
+        {top: "9.45mm",  left: "276mm"},  // not used (only 5 columns fit perfectly)
+        {top: "9.45mm",  left: "10.2mm + 88.6mm*4"}, // calculated below
+        // Row 2
+        {top: "116.45mm", left: "10.2mm"},
+        {top: "116.45mm", left: "98.8mm"},
+        {top: "116.45mm", left: "187.4mm"},
+        {top: "116.45mm", left: "276mm"}, // not used
+        {top: "116.45mm", left: "10.2mm + 88.6mm*4"},
+      ];
+
+      // Precise positions (5 columns)
+      const col1 = 10.2;
+      const col2 = 10.2 + 85.6 + 3;
+      const col3 = col2 + 85.6 + 3;
+      const col4 = col3 + 85.6 + 3;
+      const col5 = col4 + 85.6 + 3;
+
+      const row1 = 9.45;
+      const row2 = 9.45 + 54 + 3;
+
+      const cols = [col1, col2, col3, col4, col5];
+      const rows = [row1, row2];
+
+      for (let r = 0; r < 2; r++) {
+        for (let c = 0; c < 5; c++) {
+          const div = document.createElement("div");
+          div.className = "card";
+          div.style.position = "absolute";
+          div.style.left = cols[c] + "mm";
+          div.style.top  = rows[r] + "mm";
+
+          const img = document.createElement("img");
+          img.src = uploadedImg.src;
+          div.appendChild(img);
+          preview.appendChild(div);
+        }
+      }
+
+      document.getElementById("downloadBtn").disabled = false;
+    }
+
+    function generatePDF(){
+      const preview = document.getElementById("preview");
+
+      html2canvas(preview, {scale: 2, useCORS: true}).then(canvas => {
+        const imgData = canvas.toDataURL("image/jpeg", 1.0);
+
+        const pdf = new jsPDF({
+          orientation: "portrait",
+          unit: "mm",
+          format: "a4"
+        });
+
+        // A4 = 210 × 297 mm
+        pdf.addImage(imgData, "JPEG", 0, 0, 210, 297);
+        pdf.save("10_Credit_Cards_A4_No_Trim.pdf");
+      });
+    }
+  </script>
+
+  <hr>
+  <p><small>Print at 100% scale (no "fit to page").<br>Cut with a guillotine or card cutter → all 10 cards will be exactly 85.6 × 54 mm.</small></p>
+</body>
+</html>
