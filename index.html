@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Photo Generator - 10 Photos</title>
+    <title>Photo Generator - 10 Photos (2x5 Grid)</title>
     <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
     <style>
         body {
@@ -58,8 +58,8 @@
         }
         .photo-grid {
             display: grid;
-            grid-template-columns: repeat(3, 1fr);
-            grid-template-rows: repeat(4, 1fr);
+            grid-template-columns: repeat(5, 1fr);
+            grid-template-rows: repeat(2, 1fr);
             gap: 0;
             margin: 20px 0;
             background: white;
@@ -68,22 +68,13 @@
             justify-items: center;
         }
         .photo-cell {
-            width: 7cm;
-            height: 7.425cm;
+            width: 4.2cm;
+            height: 14.85cm;
             border: 1px solid #ccc;
             overflow: hidden;
             display: flex;
             align-items: center;
             justify-content: center;
-        }
-        .photo-cell.empty {
-            border: 1px dashed #ccc;
-            background-color: #f9f9f9;
-        }
-        .photo-cell.empty::after {
-            content: "Empty";
-            color: #999;
-            font-size: 14px;
         }
         .photo-cell img {
             width: 100%;
@@ -138,12 +129,6 @@
             color: #d32f2f;
             font-weight: bold;
         }
-        .layout-info {
-            text-align: center;
-            margin: 10px 0;
-            color: #666;
-            font-size: 14px;
-        }
     </style>
 </head>
 <body>
@@ -157,10 +142,7 @@
             </button>
             <p>or drag and drop your image here</p>
             <div class="size-info">
-                Each photo: 70mm x 74.25mm (10 photos in 3 columns)
-            </div>
-            <div class="layout-info">
-                Layout: 4 photos in first row, 3 in second, 3 in third
+                Each photo: 42mm x 148.5mm (perfect 2x5 grid on A4 paper)
             </div>
             <div class="cutting-guide">
                 Cut along the grid lines to get 10 identical photos
@@ -168,9 +150,9 @@
         </div>
 
         <div class="preview-section" id="previewSection">
-            <h3>Preview (10 photos in 3 columns):</h3>
+            <h3>Preview (2 rows x 5 columns):</h3>
             <div class="photo-grid" id="photoGrid">
-                <!-- 12 photo cells will be generated here (10 with photos, 2 empty) -->
+                <!-- 10 photo cells will be generated here -->
             </div>
             
             <div class="controls">
@@ -195,18 +177,11 @@
 
         let currentImageData = null;
 
-        // Create 12 photo cells for preview (4 rows of 3)
-        // We'll use 10 for photos and mark 2 as empty
-        for (let i = 0; i < 12; i++) {
+        // Create 10 photo cells for preview (2 rows of 5)
+        for (let i = 0; i < 10; i++) {
             const cell = document.createElement('div');
             cell.className = 'photo-cell';
             cell.id = `photoCell${i}`;
-            
-            // Mark the empty cells (positions 3 and 7 in 0-indexed grid)
-            if (i === 3 || i === 7) {
-                cell.classList.add('empty');
-            }
-            
             photoGrid.appendChild(cell);
         }
 
@@ -250,15 +225,9 @@
                 
                 const img = new Image();
                 img.onload = function() {
-                    // Display preview in 10 cells (skip the empty ones)
-                    for (let i = 0; i < 12; i++) {
+                    // Display preview in all 10 cells
+                    for (let i = 0; i < 10; i++) {
                         const cell = document.getElementById(`photoCell${i}`);
-                        
-                        // Skip empty cells
-                        if (i === 3 || i === 7) {
-                            continue;
-                        }
-                        
                         cell.innerHTML = '';
                         const previewImg = document.createElement('img');
                         previewImg.src = currentImageData;
@@ -292,29 +261,22 @@
             const pdfWidth = pdf.internal.pageSize.getWidth(); // 210mm
             const pdfHeight = pdf.internal.pageSize.getHeight(); // 297mm
             
-            // Calculate exact dimensions for 3 columns
-            // 3 columns: 210mm / 3 = 70mm each
-            // We need to fit 10 photos in 4 rows with some empty space
-            const photoWidth = pdfWidth / 3; // 70mm
-            const photoHeight = 74.25; // 74.25mm (to fit 4 rows with some space)
+            // Calculate exact dimensions for perfect 2x5 grid
+            // 5 columns: 210mm / 5 = 42mm each
+            // 2 rows: 297mm / 2 = 148.5mm each
+            const photoWidth = pdfWidth / 5; // 42mm
+            const photoHeight = pdfHeight / 2; // 148.5mm
 
-            // Load the image and add it 10 times to the PDF
+            // Load the image and add it 10 times to the PDF (2 rows of 5)
             const img = new Image();
             img.onload = function() {
-                let photoCount = 0;
-                
-                // Add photos in a 4x3 grid but skip 2 positions
-                for (let row = 0; row < 4; row++) {
-                    for (let col = 0; col < 3; col++) {
-                        // Skip the empty positions (row 1, col 2 and row 2, col 2)
-                        if ((row === 1 && col === 2) || (row === 2 && col === 2)) {
-                            continue;
-                        }
-                        
+                // Add all 10 photos in a perfect 2x5 grid
+                for (let row = 0; row < 2; row++) {
+                    for (let col = 0; col < 5; col++) {
                         const xPos = col * photoWidth;
                         const yPos = row * photoHeight;
                         
-                        // Add the image to PDF at exact size
+                        // Add the image to PDF at exact size to fill each cell
                         pdf.addImage(
                             currentImageData, 
                             'JPEG', 
@@ -323,15 +285,11 @@
                             photoWidth, 
                             photoHeight
                         );
-                        
-                        photoCount++;
-                        if (photoCount >= 10) break;
                     }
-                    if (photoCount >= 10) break;
                 }
                 
                 // Save the PDF
-                pdf.save('photos-10-grid.pdf');
+                pdf.save('photos-10-grid-2x5.pdf');
                 status.textContent = 'PDF generated successfully! Check your downloads folder.';
             };
             
@@ -348,12 +306,10 @@
             status.textContent = '';
             currentImageData = null;
             
-            // Clear all photo cells except the empty ones
-            for (let i = 0; i < 12; i++) {
+            // Clear all photo cells
+            for (let i = 0; i < 10; i++) {
                 const cell = document.getElementById(`photoCell${i}`);
-                if (!cell.classList.contains('empty')) {
-                    cell.innerHTML = '';
-                }
+                cell.innerHTML = '';
             }
         }
 
