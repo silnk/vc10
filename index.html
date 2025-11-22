@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Photo Generator - 10 Photos (2x5 Grid)</title>
+    <title>Photo Generator - 10 Photos (5x2 Grid)</title>
     <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
     <style>
         body {
@@ -58,8 +58,8 @@
         }
         .photo-grid {
             display: grid;
-            grid-template-columns: repeat(5, 1fr);
-            grid-template-rows: repeat(2, 1fr);
+            grid-template-columns: repeat(2, 1fr);
+            grid-template-rows: repeat(5, 1fr);
             gap: 0;
             margin: 20px 0;
             background: white;
@@ -68,8 +68,8 @@
             justify-items: center;
         }
         .photo-cell {
-            width: 4.2cm;
-            height: 14.85cm;
+            width: 10.5cm;
+            height: 5.94cm;
             border: 1px solid #ccc;
             overflow: hidden;
             display: flex;
@@ -142,7 +142,7 @@
             </button>
             <p>or drag and drop your image here</p>
             <div class="size-info">
-                Each photo: 42mm x 148.5mm (perfect 2x5 grid on A4 paper)
+                Each photo: 105mm x 59.4mm (perfect 5x2 grid on A4 paper)
             </div>
             <div class="cutting-guide">
                 Cut along the grid lines to get 10 identical photos
@@ -150,7 +150,7 @@
         </div>
 
         <div class="preview-section" id="previewSection">
-            <h3>Preview (2 rows x 5 columns):</h3>
+            <h3>Preview (5 rows x 2 columns):</h3>
             <div class="photo-grid" id="photoGrid">
                 <!-- 10 photo cells will be generated here -->
             </div>
@@ -177,7 +177,7 @@
 
         let currentImageData = null;
 
-        // Create 10 photo cells for preview (2 rows of 5)
+        // Create 10 photo cells for preview (5 rows of 2)
         for (let i = 0; i < 10; i++) {
             const cell = document.createElement('div');
             cell.className = 'photo-cell';
@@ -261,18 +261,18 @@
             const pdfWidth = pdf.internal.pageSize.getWidth(); // 210mm
             const pdfHeight = pdf.internal.pageSize.getHeight(); // 297mm
             
-            // Calculate exact dimensions for perfect 2x5 grid
-            // 5 columns: 210mm / 5 = 42mm each
-            // 2 rows: 297mm / 2 = 148.5mm each
-            const photoWidth = pdfWidth / 5; // 42mm
-            const photoHeight = pdfHeight / 2; // 148.5mm
+            // Calculate exact dimensions for perfect 5x2 grid
+            // 2 columns: 210mm / 2 = 105mm each
+            // 5 rows: 297mm / 5 = 59.4mm each
+            const photoWidth = pdfWidth / 2; // 105mm
+            const photoHeight = pdfHeight / 5; // 59.4mm
 
-            // Load the image and add it 10 times to the PDF (2 rows of 5)
+            // Load the image and add it 10 times to the PDF (5 rows of 2)
             const img = new Image();
             img.onload = function() {
-                // Add all 10 photos in a perfect 2x5 grid
-                for (let row = 0; row < 2; row++) {
-                    for (let col = 0; col < 5; col++) {
+                // Add all 10 photos in a perfect 5x2 grid
+                for (let row = 0; row < 5; row++) {
+                    for (let col = 0; col < 2; col++) {
                         const xPos = col * photoWidth;
                         const yPos = row * photoHeight;
                         
@@ -289,7 +289,7 @@
                 }
                 
                 // Save the PDF
-                pdf.save('photos-10-grid-2x5.pdf');
+                pdf.save('photos-10-grid-5x2.pdf');
                 status.textContent = 'PDF generated successfully! Check your downloads folder.';
             };
             
